@@ -1,0 +1,7 @@
+The Huffman coding algorithm is a popular data compression technique developed by David Huffman while he was a Ph.D. student at MIT in 1952. The algorithm builds a binary tree where the paths from the root to the leaves represent the variable-length codes assigned to individual symbols. Symbols that occur more frequently in the input file receive shorter bit sequences, while symbols that appear less frequently are assigned longer bit strings.
+
+Because no code is a prefix of any other code, Huffman coding is classified as a prefix-free code. This unique property ensures that the compressed bitstream can be unambiguously decoded back into the original byte stream without needing explicit delimiter markers between encoded symbols.
+
+When compressing binary files, the algorithm counts the frequency of all 256 possible byte values (from 0x00 to 0xFF) and constructs a Min-Heap priority queue. The two nodes with the lowest frequencies are repeatedly extracted and merged into a parent node until only one root node remains in the heap. This root node represents the complete Huffman Tree.
+
+Huffman coding is widely utilized as the final entropy encoding stage in various standard compression formats, including GZIP, PKZIP, PNG images, JPEG graphic files, and MP3 audio streams. When applied to plain text or source code files, Huffman compression typically achieves a compression ratio between 30% and 60%, depending on the entropy and character distribution of the input document.
