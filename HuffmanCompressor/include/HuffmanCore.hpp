@@ -5,9 +5,9 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <array>
 #include <cstdint>
 #include <stdexcept>
-#include <array>
 #include <utility>
 
 struct HuffmanNode {
@@ -86,7 +86,7 @@ public:
 
     HuffmanNode* pop() {
         if (data.empty()) {
-            throw std::out_of_range("MinHeap::pop(): Heap rỗng.");
+            throw std::out_of_range("MinHeap::pop(): Heap empty");
         }
         HuffmanNode* min_node = data[0];
         data[0] = data.back();
@@ -109,7 +109,7 @@ inline std::array<uint64_t, 256> compute_byte_frequencies(const std::string& fil
     std::ifstream file(filepath, std::ios::binary);
 
     if (!file.is_open()) {
-        throw std::runtime_error("Không thể mở file để đếm tần số: " + filepath);
+        throw std::runtime_error("Cannot open file: " + filepath);
     }
 
     constexpr size_t BUFFER_SIZE = 64 * 1024;
@@ -124,69 +124,5 @@ inline std::array<uint64_t, 256> compute_byte_frequencies(const std::string& fil
 
     return freq_table;
 }
-
-class BitWriter {
-private:
-    std::ostream& out_stream;
-    uint8_t buffer;
-    uint8_t bit_count;
-
-public:
-    explicit BitWriter(std::ostream& os) : out_stream(os), buffer(0), bit_count(0) {}
-
-    void write_bit(uint8_t bit) {
-        buffer = (buffer << 1) | (bit & 1);
-        bit_count++;
-        if (bit_count == 8) {
-            out_stream.put(static_cast<char>(buffer));
-            buffer = 0;
-            bit_count = 0;
-        }
-    }
-
-    void write_bits(const std::string& bitstring) {
-        for (char ch : bitstring) {
-            if (ch == '1') {
-                write_bit(1);
-            } else if (ch == '0') {
-                write_bit(0);
-            } else {
-                throw std::invalid_argument("Ký tự bit không hợp lệ (chỉ chấp nhận '0' hoặc '1').");
-            }
-        }
-    }
-
-    void flush() {
-        if (bit_count > 0) {
-            buffer <<= (8 - bit_count);
-            out_stream.put(static_cast<char>(buffer));
-            buffer = 0;
-            bit_count = 0;
-        }
-    }
-};
-
-class BitReader {
-private:
-    std::istream& in_stream;
-    uint8_t buffer;
-    uint8_t bits_left;
-
-public:
-    explicit BitReader(std::istream& is) : in_stream(is), buffer(0), bits_left(0) {}
-
-    int read_bit() {
-        if (bits_left == 0) {
-            char byte_read;
-            if (!in_stream.get(byte_read)) {
-                return -1;
-            }
-            buffer = static_cast<uint8_t>(byte_read);
-            bits_left = 8;
-        }
-        bits_left--;
-        return (buffer >> bits_left) & 1;
-    }
-};
 
 #endif
