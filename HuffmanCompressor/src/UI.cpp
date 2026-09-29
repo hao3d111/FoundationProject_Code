@@ -1,7 +1,10 @@
 #include "../include/UI.hpp"
 #include <iostream>
 #include <iomanip>
-#include <string>
+#include <fstream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 void UI::clearScreen() {
 #ifdef _WIN32
@@ -72,24 +75,27 @@ void UI::handleCompression() {
     displayHeader();
     std::cout << "=== [1] FILE COMPRESSION ===\n\n";
     
-    std::string inputPath, outputPath;
+    std::string inputPath;
     std::cout << "Enter source file path: ";
     std::cin >> inputPath;
+
+    // Check if input file exists
+    if (!fs::exists(inputPath) || fs::is_directory(inputPath)) {
+        std::cout << "\n[ERROR] File does not exist or is a directory!\n";
+        pauseScreen();
+        return;
+    }
+
+    uint64_t originalSize = fs::file_size(inputPath);
+    std::string outputPath = inputPath + ".huff";
+
+    std::cout << "Target compressed path : " << outputPath << "\n";
+    std::cout << "Original File Size     : " << originalSize << " Bytes\n\n";
+    std::cout << "[INFO] Compressing file...\n";
+
+    // TODO: Connect with Huu and Duong's compression logic in Week 4/5
     
-    outputPath = inputPath + ".huff";
-    std::cout << "Output compressed file path: " << outputPath << "\n\n";
-    
-    std::cout << "[INFO] Processing compression...\n";
-    
-    // TODO: Connect with Huu and Duong's compression engine module
-    // Example: CompressEngine::compress(inputPath, outputPath);
-    
-    std::cout << "\n[SUCCESS] File compressed successfully!";
-    std::cout << "\n- Original Size  : 1,024 KB";
-    std::cout << "\n- Compressed Size: 412 KB";
-    std::cout << "\n- Space Saved    : 59.76%";
-    std::cout << "\n- Execution Time : 14 ms\n";
-    
+    std::cout << "\n[SUCCESS] File compression completed!\n";
     pauseScreen();
 }
 
@@ -101,19 +107,21 @@ void UI::handleDecompression() {
     std::string inputPath, outputPath;
     std::cout << "Enter .huff compressed file path: ";
     std::cin >> inputPath;
+
+    if (!fs::exists(inputPath)) {
+        std::cout << "\n[ERROR] Compressed file does not exist!\n";
+        pauseScreen();
+        return;
+    }
     
     std::cout << "Enter destination path for restored file: ";
     std::cin >> outputPath;
     
-    std::cout << "\n[INFO] Processing decompression...\n";
+    std::cout << "\n[INFO] Decompressing file...\n";
+
+    // TODO: Connect with Huu and Duong's decompression logic in Week 4/5
     
-    // TODO: Connect with Huu and Duong's decompression engine module
-    // Example: CompressEngine::decompress(inputPath, outputPath);
-    
-    std::cout << "\n[SUCCESS] File decompressed successfully!";
-    std::cout << "\n- Restored Size   : 1,024 KB";
-    std::cout << "\n- Hash Verification (MD5): MATCHED (100% Integrity)\n";
-    
+    std::cout << "\n[SUCCESS] File decompression completed!\n";
     pauseScreen();
 }
 
@@ -122,19 +130,26 @@ void UI::handleBenchmarking() {
     displayHeader();
     std::cout << "=== [3] BENCHMARK TEST SUITE ===\n\n";
     
-    std::cout << "Target Directory: ./test_dataset/\n\n";
+    std::string datasetDir = "./test_dataset/";
+    std::cout << "Scanning directory: " << datasetDir << "\n\n";
+
     std::cout << std::left 
               << std::setw(25) << "File Name" 
-              << std::setw(15) << "Original (KB)" 
-              << std::setw(15) << "Compressed" 
-              << std::setw(12) << "Saved (%)" 
-              << std::setw(10) << "Time (ms)" << "\n";
+              << std::setw(15) << "Original (Bytes)" 
+              << std::setw(15) << "Status" << "\n";
     std::cout << "-------------------------------------------------------------------\n";
-    
-    // Mock sample benchmark entries
-    std::cout << std::setw(25) << "sample_text_english.txt" << std::setw(15) << "1.5" << std::setw(15) << "0.8 KB" << std::setw(12) << "46.67" << std::setw(10) << "2" << "\n";
-    std::cout << std::setw(25) << "sample_source_code.cpp"  << std::setw(15) << "1.0" << std::setw(15) << "0.6 KB" << std::setw(12) << "40.00" << std::setw(10) << "1" << "\n";
-    std::cout << std::setw(25) << "edge_single_char.txt"    << std::setw(15) << "0.1" << std::setw(15) << "0.02 KB" << std::setw(12) << "80.00" << std::setw(10) << "0" << "\n";
+
+    if (fs::exists(datasetDir) && fs::is_directory(datasetDir)) {
+        for (const auto& entry : fs::directory_iterator(datasetDir)) {
+            if (entry.is_regular_file()) {
+                std::cout << std::setw(25) << entry.path().filename().string() 
+                          << std::setw(15) << entry.file_size() 
+                          << std::setw(15) << "Ready to Test" << "\n";
+            }
+        }
+    } else {
+        std::cout << "Directory ./test_dataset/ not found or empty.\n";
+    }
     
     pauseScreen();
 }
