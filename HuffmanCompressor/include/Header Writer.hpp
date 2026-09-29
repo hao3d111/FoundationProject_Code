@@ -2,9 +2,7 @@
 #define HEADER_WRITER_HPP
 #include <fstream>
 #include <map>
-inline void ghiHeader(std::ofstream &out,
-                      const std::map<unsigned char, unsigned int> &freq,
-                      int padding) {
+inline void ghiHeader(std::ofstream &out,const std::map<unsigned char, unsigned int> &freq,int padding) {
     unsigned char pad = (unsigned char)padding;
     unsigned short n = (unsigned short)freq.size();
     out.write((char*)&pad, sizeof(pad));
@@ -16,9 +14,7 @@ inline void ghiHeader(std::ofstream &out,
         out.write((char*)&f, sizeof(f));
     }
 }
-inline void docHeader(std::ifstream &in,
-                      std::map<unsigned char, unsigned int> &freq,
-                      int &padding) {
+inline void docHeader(std::ifstream &in,std::map<unsigned char, unsigned int> &freq,int &padding) {
     unsigned char pad;
     unsigned short n;
     in.read((char*)&pad, sizeof(pad));
