@@ -78,6 +78,8 @@ int main() {
         std::cerr << "\n[FAIL] Unit Test Exception: " << e.what() << std::endl;
         return 1;
     }
+    std::cout << "\nPress Enter to exit...";
+    std::cin.get();
 
     return 0;
 }
