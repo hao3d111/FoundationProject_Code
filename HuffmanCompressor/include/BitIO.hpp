@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <stdexcept>
 
+
 class BitWriter {
 private:
     std::ostream& out_stream;
@@ -32,18 +33,26 @@ public:
             } else if (ch == '0') {
                 write_bit(0);
             } else {
-                throw std::invalid_argument("Invalid bit character");
+                throw std::invalid_argument("Invalid bit character in bitstring!");
             }
         }
     }
 
-    void flush() {
+
+    uint8_t flush() {
+        uint8_t padding = 0;
         if (bit_count > 0) {
-            buffer <<= (8 - bit_count);
+            padding = 8 - bit_count;
+            buffer <<= padding; 
             out_stream.put(static_cast<char>(buffer));
             buffer = 0;
             bit_count = 0;
         }
+        return padding;
+    }
+
+    uint8_t get_pending_bits() const {
+        return bit_count;
     }
 };
 
@@ -60,7 +69,7 @@ public:
         if (bits_left == 0) {
             char byte_read;
             if (!in_stream.get(byte_read)) {
-                return -1;
+                return -1; 
             }
             buffer = static_cast<uint8_t>(byte_read);
             bits_left = 8;
@@ -68,6 +77,11 @@ public:
         bits_left--;
         return (buffer >> bits_left) & 1;
     }
+
+    void reset() {
+        buffer = 0;
+        bits_left = 0;
+    }
 };
 
-#endif
+#endif // BIT_IO_HPP
