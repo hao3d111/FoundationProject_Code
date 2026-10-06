@@ -1,7 +1,9 @@
 #include "../include/UI.hpp"
+#include "../include/Benchmark.hpp"
+#include "../include/HeaderReader.hpp"
+#include "../include/HuffmanEncoder.hpp"
 #include <iostream>
 #include <iomanip>
-#include <fstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -79,23 +81,38 @@ void UI::handleCompression() {
     std::cout << "Enter source file path: ";
     std::cin >> inputPath;
 
-    // Check if input file exists
     if (!fs::exists(inputPath) || fs::is_directory(inputPath)) {
         std::cout << "\n[ERROR] File does not exist or is a directory!\n";
         pauseScreen();
         return;
     }
 
-    uint64_t originalSize = fs::file_size(inputPath);
     std::string outputPath = inputPath + ".huff";
+    std::cout << "Target compressed path : " << outputPath << "\n\n";
+    std::cout << "[INFO] Processing compression...\n";
 
-    std::cout << "Target compressed path : " << outputPath << "\n";
-    std::cout << "Original File Size     : " << originalSize << " Bytes\n\n";
-    std::cout << "[INFO] Compressing file...\n";
+    // Initialize Timer for execution time measurement
+    Timer timer;
+    timer.start();
 
-    // TODO: Connect with Huu and Duong's compression logic in Week 4/5
-    
-    std::cout << "\n[SUCCESS] File compression completed!\n";
+    try {
+        // Execute real compression flow
+        HuffmanEncoder::compress(inputPath, outputPath);
+
+        timer.stop(); // Stop timer
+
+        // Compute performance stats via Profiler
+        CompressionStats stats = Profiler::calculate_stats(inputPath, outputPath, timer.get_elapsed_milliseconds());
+
+        std::cout << "\n[SUCCESS] File compression completed!";
+        std::cout << "\n- Original Size  : " << stats.original_size_bytes << " Bytes (" << (stats.original_size_bytes / 1024.0) << " KB)";
+        std::cout << "\n- Compressed Size: " << stats.compressed_size_bytes << " Bytes (" << (stats.compressed_size_bytes / 1024.0) << " KB)";
+        std::cout << "\n- Space Saved    : " << std::fixed << std::setprecision(2) << stats.space_saved_percent << "%";
+        std::cout << "\n- Execution Time : " << stats.execution_time_ms << " ms\n";
+    } catch (const std::exception& e) {
+        std::cout << "\n[ERROR] Compression failed: " << e.what() << "\n";
+    }
+
     pauseScreen();
 }
 
@@ -117,11 +134,26 @@ void UI::handleDecompression() {
     std::cout << "Enter destination path for restored file: ";
     std::cin >> outputPath;
     
-    std::cout << "\n[INFO] Decompressing file...\n";
+    std::cout << "\n[INFO] Processing decompression...\n";
 
-    // TODO: Connect with Huu and Duong's decompression logic in Week 4/5
-    
-    std::cout << "\n[SUCCESS] File decompression completed!\n";
+    Timer timer;
+    timer.start();
+
+    try {
+        // Call decompression from HuffmanDecoder (HeaderReader.hpp)
+        HuffmanDecoder::decompress(inputPath, outputPath);
+        
+        timer.stop();
+
+        uint64_t restored_size = Profiler::get_file_size(outputPath);
+
+        std::cout << "\n[SUCCESS] File decompression completed!";
+        std::cout << "\n- Restored File Size : " << restored_size << " Bytes (" << (restored_size / 1024.0) << " KB)";
+        std::cout << "\n- Execution Time     : " << std::fixed << std::setprecision(2) << timer.get_elapsed_milliseconds() << " ms\n";
+    } catch (const std::exception& e) {
+        std::cout << "\n[ERROR] Decompression failed: " << e.what() << "\n";
+    }
+
     pauseScreen();
 }
 
@@ -131,20 +163,49 @@ void UI::handleBenchmarking() {
     std::cout << "=== [3] BENCHMARK TEST SUITE ===\n\n";
     
     std::string datasetDir = "./test_dataset/";
-    std::cout << "Scanning directory: " << datasetDir << "\n\n";
+    std::cout << "Target Directory: " << datasetDir << "\n\n";
 
     std::cout << std::left 
-              << std::setw(25) << "File Name" 
-              << std::setw(15) << "Original (Bytes)" 
-              << std::setw(15) << "Status" << "\n";
-    std::cout << "-------------------------------------------------------------------\n";
+              << std::setw(28) << "File Name" 
+              << std::setw(15) << "Original (KB)" 
+              << std::setw(15) << "Compressed" 
+              << std::setw(12) << "Saved (%)" 
+              << std::setw(10) << "Time (ms)" << "\n";
+    std::cout << "-----------------------------------------------------------------------------------\n";
 
     if (fs::exists(datasetDir) && fs::is_directory(datasetDir)) {
         for (const auto& entry : fs::directory_iterator(datasetDir)) {
             if (entry.is_regular_file()) {
-                std::cout << std::setw(25) << entry.path().filename().string() 
-                          << std::setw(15) << entry.file_size() 
-                          << std::setw(15) << "Ready to Test" << "\n";
+                std::string filepath = entry.path().string();
+                std::string filename = entry.path().filename().string();
+
+                // Skip existing .huff or temporary binary test files
+                if (entry.path().extension() == ".huff" || entry.path().extension() == ".bin") continue;
+
+                std::string output_huff = filepath + ".test.huff";
+
+                Timer timer;
+                timer.start();
+
+                try {
+                    // Test algorithm performance on dataset entry
+                    HuffmanEncoder::compress(filepath, output_huff);
+                    timer.stop();
+
+                    CompressionStats stats = Profiler::calculate_stats(filepath, output_huff, timer.get_elapsed_milliseconds());
+
+                    std::cout << std::left 
+                              << std::setw(28) << filename 
+                              << std::setw(15) << std::fixed << std::setprecision(2) << (stats.original_size_bytes / 1024.0)
+                              << std::setw(15) << (stats.compressed_size_bytes / 1024.0)
+                              << std::setw(12) << stats.space_saved_percent
+                              << std::setw(10) << stats.execution_time_ms << "\n";
+
+                    // Cleanup temporary compressed file
+                    if (fs::exists(output_huff)) fs::remove(output_huff);
+                } catch (...) {
+                    std::cout << std::left << std::setw(28) << filename << " [COMPRESSION ERROR]\n";
+                }
             }
         }
     } else {
