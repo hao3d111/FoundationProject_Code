@@ -131,20 +131,29 @@ void UI::handleDecompression() {
         return;
     }
     
-    // Yêu cầu nhập tên tệp mới
+    // 1. Tự động trích xuất đuôi file gốc từ tên tệp nén
+    // Ví dụ: file_goc.txt.huff -> Cắt bỏ .huff -> Lấy đuôi .txt
+    fs::path compressedPath(inputPath);
+    fs::path pathWithoutHuff = compressedPath;
+    if (pathWithoutHuff.extension() == ".huff") {
+        pathWithoutHuff.replace_extension(""); // Xóa đuôi .huff
+    }
+    std::string originalExtension = pathWithoutHuff.extension().string(); // Thu thập đuôi gốc (.txt, .bmp, .exe...)
+    
+    // 2. Yêu cầu nhập tên tệp mới (KHÔNG CẦN NHẬP ĐUÔI)
     std::string customFileName;
-    std::cout << "Enter desired output file name (e.g., restored_file.txt): ";
+    std::cout << "Enter output file name (NO extension, e.g., my_restored_file): ";
     std::cin >> customFileName;
 
-    // Tách thư mục gốc và ghép với tên tệp mới
-    fs::path compressedPath(inputPath);
+    // 3. Tự động nối thư mục + tên file bạn đặt + đuôi file gốc
     fs::path parentDirectory = compressedPath.parent_path();
+    std::string finalFileName = customFileName + originalExtension;
     std::string outputPath;
     
     if (parentDirectory.empty()) {
-        outputPath = customFileName; // Nếu chạy file ở thư mục hiện hành
+        outputPath = finalFileName; 
     } else {
-        outputPath = (parentDirectory / customFileName).string(); // Nối thư mục và tên file
+        outputPath = (parentDirectory / finalFileName).string();
     }
     
     std::cout << "Destination path set to: " << outputPath << "\n";
