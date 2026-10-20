@@ -131,18 +131,23 @@ void UI::handleDecompression() {
         return;
     }
     
+    // Yêu cầu nhập tên tệp mới
+    std::string customFileName;
+    std::cout << "Enter desired output file name (e.g., restored_file.txt): ";
+    std::cin >> customFileName;
+
+    // Tách thư mục gốc và ghép với tên tệp mới
     fs::path compressedPath(inputPath);
+    fs::path parentDirectory = compressedPath.parent_path();
     std::string outputPath;
     
-    if (compressedPath.extension() == ".huff") {
-        fs::path restoredPath = compressedPath;
-        restoredPath.replace_extension(""); 
-        outputPath = restoredPath.string();
+    if (parentDirectory.empty()) {
+        outputPath = customFileName; // Nếu chạy file ở thư mục hiện hành
     } else {
-        outputPath = inputPath + "_restored";
+        outputPath = (parentDirectory / customFileName).string(); // Nối thư mục và tên file
     }
     
-    std::cout << "Auto-generated destination path: " << outputPath << "\n";
+    std::cout << "Destination path set to: " << outputPath << "\n";
     std::cout << "\n[INFO] Processing decompression...\n";
 
     Timer timer;
@@ -164,7 +169,6 @@ void UI::handleDecompression() {
 
     pauseScreen();
 }
-
 void UI::handleBenchmarking() {
     clearScreen();
     displayHeader();
