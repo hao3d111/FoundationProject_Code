@@ -121,7 +121,7 @@ void UI::handleDecompression() {
     displayHeader();
     std::cout << "=== [2] FILE DECOMPRESSION ===\n\n";
     
-    std::string inputPath, outputPath;
+    std::string inputPath;
     std::cout << "Enter .huff compressed file path: ";
     std::cin >> inputPath;
 
@@ -131,16 +131,24 @@ void UI::handleDecompression() {
         return;
     }
     
-    std::cout << "Enter destination path for restored file: ";
-    std::cin >> outputPath;
+    fs::path compressedPath(inputPath);
+    std::string outputPath;
     
+    if (compressedPath.extension() == ".huff") {
+        fs::path restoredPath = compressedPath;
+        restoredPath.replace_extension(""); 
+        outputPath = restoredPath.string();
+    } else {
+        outputPath = inputPath + "_restored";
+    }
+    
+    std::cout << "Auto-generated destination path: " << outputPath << "\n";
     std::cout << "\n[INFO] Processing decompression...\n";
 
     Timer timer;
     timer.start();
 
     try {
-        // Call decompression from HuffmanDecoder (HeaderReader.hpp)
         HuffmanDecoder::decompress(inputPath, outputPath);
         
         timer.stop();
