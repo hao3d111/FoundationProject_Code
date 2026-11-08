@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <utility>
+#include <filesystem>
 
 struct HuffmanNode {
     int16_t byte_val;
@@ -106,7 +107,7 @@ public:
 
 inline std::array<uint64_t, 256> compute_byte_frequencies(const std::string& filepath) {
     std::array<uint64_t, 256> freq_table = {0};
-    std::ifstream file(filepath, std::ios::binary);
+    std::ifstream file(std::filesystem::u8path(filepath), std::ios::binary);
 
     if (!file.is_open()) {
         throw std::runtime_error("Cannot open file: " + filepath);
