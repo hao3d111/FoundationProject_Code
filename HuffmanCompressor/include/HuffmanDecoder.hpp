@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <filesystem>
 #include "HuffmanCore.hpp"
 #include "BitIO.hpp"
 #include "HuffmanTree.hpp"
@@ -15,7 +16,7 @@
 class HuffmanDecoder {
 public:
     static void decompress(const std::string& input_path, const std::string& output_path) {
-        std::ifstream in_file(input_path, std::ios::binary);
+        std::ifstream in_file(std::filesystem::u8path(input_path), std::ios::binary);
         if (!in_file.is_open()) {
             throw std::runtime_error("Cannot open compressed file: " + input_path);
         }
@@ -28,6 +29,11 @@ public:
 
         if (!in_file) {
             throw std::runtime_error("Cannot read file header.");
+        }
+
+        std::ofstream out_file(std::filesystem::u8path(output_path), std::ios::binary);
+        if (!out_file.is_open()) {
+            throw std::runtime_error("Cannot create output file: " + output_path);
         }
 
         if (total_bytes == 0) {
@@ -44,11 +50,6 @@ public:
                 throw std::runtime_error("Cannot read frequency table from header.");
             }
             freq_table[byte_val] = freq;
-        }
-
-        std::ofstream out_file(output_path, std::ios::binary);
-        if (!out_file.is_open()) {
-            throw std::runtime_error("Cannot create output file: " + output_path);
         }
 
         HuffmanTree tree;
