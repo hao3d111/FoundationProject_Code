@@ -12,8 +12,8 @@ struct CompressionStats {
     uint64_t original_size_bytes = 0;
     uint64_t compressed_size_bytes = 0;
     double execution_time_ms = 0.0;
-    double compression_ratio = 0.0;    // Tỷ lệ kích thước (Compressed / Original * 100)
-    double space_saved_percent = 0.0;   // Tỷ lệ tiết kiệm dung lượng (100 - Compression Ratio)
+    double compression_ratio = 0.0;    // Size ratio (Compressed / Original * 100)
+    double space_saved_percent = 0.0;  // Space saved percentage (100 - Compression Ratio)
 };
 
 class Timer {
@@ -30,7 +30,7 @@ public:
         end_time = std::chrono::high_resolution_clock::now();
     }
 
-    // Trả về thời gian thực thi theo mili-giây (ms)
+    // Returns elapsed execution time in milliseconds (ms)
     double get_elapsed_milliseconds() const {
         std::chrono::duration<double, std::milli> elapsed = end_time - start_time;
         return elapsed.count();
@@ -39,15 +39,16 @@ public:
 
 class Profiler {
 public:
-    // Hàm đo đạc dung lượng tệp
+    // Measures file size in bytes
     static uint64_t get_file_size(const std::string& filepath) {
-        if (fs::exists(filepath) && fs::is_regular_file(filepath)) {
-            return fs::file_size(filepath);
+        fs::path p = fs::u8path(filepath);
+        if (fs::exists(p) && fs::is_regular_file(p)) {
+            return fs::file_size(p);
         }
         return 0;
     }
 
-    // Hàm tổng hợp chỉ số hiệu năng nén
+    // Calculates compression performance metrics
     static CompressionStats calculate_stats(const std::string& input_path, 
                                             const std::string& output_path, 
                                             double time_ms) {
