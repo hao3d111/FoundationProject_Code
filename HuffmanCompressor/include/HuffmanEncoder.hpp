@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <filesystem>
 #include "HuffmanCore.hpp"
 #include "BitIO.hpp"
 #include "HuffmanTree.hpp"
@@ -26,7 +27,7 @@ public:
             }
         }
 
-        std::ofstream out_file(output_path, std::ios::binary);
+        std::ofstream out_file(std::filesystem::u8path(output_path), std::ios::binary);
         if (!out_file.is_open()) {
             throw std::runtime_error("Cannot create output file: " + output_path);
         }
@@ -51,7 +52,7 @@ public:
         tree.build_tree(freq_table);
         auto code_table = tree.build_code_table();
 
-        std::ifstream in_file(input_path, std::ios::binary);
+        std::ifstream in_file(std::filesystem::u8path(input_path), std::ios::binary);
         if (!in_file.is_open()) {
             throw std::runtime_error("Cannot open input file: " + input_path);
         }
