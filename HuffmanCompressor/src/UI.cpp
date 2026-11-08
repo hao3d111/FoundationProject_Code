@@ -1,6 +1,6 @@
 #include "../include/UI.hpp"
 #include "../include/Benchmark.hpp"
-#include "../include/HeaderReader.hpp"
+#include "../include/HuffmanDecoder.hpp"
 #include "../include/HuffmanEncoder.hpp"
 #include <iostream>
 #include <iomanip>
@@ -131,21 +131,21 @@ void UI::handleDecompression() {
         return;
     }
     
-    // 1. Tự động trích xuất đuôi file gốc từ tên tệp nén
-    // Ví dụ: file_goc.txt.huff -> Cắt bỏ .huff -> Lấy đuôi .txt
+    // 1. Automatically extract original file extension from compressed file name
+    // e.g., source.txt.huff -> remove .huff -> .txt
     fs::path compressedPath(inputPath);
     fs::path pathWithoutHuff = compressedPath;
     if (pathWithoutHuff.extension() == ".huff") {
-        pathWithoutHuff.replace_extension(""); // Xóa đuôi .huff
+        pathWithoutHuff.replace_extension(""); // Remove .huff extension
     }
-    std::string originalExtension = pathWithoutHuff.extension().string(); // Thu thập đuôi gốc (.txt, .bmp, .exe...)
+    std::string originalExtension = pathWithoutHuff.extension().string(); // Original extension (.txt, .bmp, .exe...)
     
-    // 2. Yêu cầu nhập tên tệp mới (KHÔNG CẦN NHẬP ĐUÔI)
+    // 2. Prompt for output file name (no extension needed)
     std::string customFileName;
     std::cout << "Enter output file name (NO extension, e.g., my_restored_file): ";
     std::cin >> customFileName;
 
-    // 3. Tự động nối thư mục + tên file bạn đặt + đuôi file gốc
+    // 3. Combine parent folder + chosen name + original extension
     fs::path parentDirectory = compressedPath.parent_path();
     std::string finalFileName = customFileName + originalExtension;
     std::string outputPath;
