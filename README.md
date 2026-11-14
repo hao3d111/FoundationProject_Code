@@ -184,15 +184,6 @@ HuffmanCompressor/
 
 ---
 
-## Known limitations
-
-- There is no checksum or magic number, so feeding a non-`.huff` file to the decompressor may produce garbage or an error with no early detection.
-- The header stores an 8-byte frequency per distinct byte value, which is **costly for very small files**; storing code lengths instead would shrink it.
-- The decoder rebuilds the tree from the same frequency table with the same algorithm, so a **compressed file can only be decoded with this exact tree-building behaviour**. Changing how `MinHeap` breaks ties between equal frequencies would make existing `.huff` files decode incorrectly.
-- The decoder opens files with plain string paths, while the encoder uses `std::filesystem::u8path`. Paths containing Unicode characters have not been thoroughly tested at decompression time.
-- Only `BitIO` has unit tests. Compression and decompression are checked through the benchmark and sample data, with no automated test that the decompressed output matches the original byte for byte.
-
----
 
 ## License
 
